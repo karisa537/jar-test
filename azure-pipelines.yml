@@ -9,16 +9,14 @@
 # https://aka.ms/yaml
 
 trigger:
-  #branches:
-    #include:
-    #- master
-  paths:
-    exclude:
-    - pipelines/*
-    - test/*
-    - README.md
-    - .dockerignore
-    - .gitignore
+  - none
+  # paths:
+  #   exclude:
+  #   - pipelines/*
+  #   - test/*
+  #   - README.md
+  #   - .dockerignore
+  #   - .gitignore
  
 pool:
   vmImage: "ubuntu-latest"
