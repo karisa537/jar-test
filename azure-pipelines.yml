@@ -1,37 +1,10 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
+# CI Pipeline to build the code and store the artifacts 
+#To be consumed by the cd pipeline later when the code has been riviewed and confirmed stable.
 trigger:
   - none
-  # paths:
-  #   exclude:
-  #   - pipelines/*
-  #   - test/*
-  #   - README.md
-  #   - .dockerignore
-  #   - .gitignore
  
 pool:
   vmImage: "ubuntu-latest"
-
-variables:
-  - name: registryName
-    value: 'kidaba'
-  - name: imageName
-    value: 'app-example-vulnerabilities'
-  - name: azureSubscription
-    value: 'azureRM'
-  - name: tag
-    value: '$(Build.BuildId)'
-  - name: waitForScanResultsAfterPushInMinutes
-    value: '5'
 
 stages:
 - stage: Build_and_Publish
@@ -42,10 +15,10 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - task: bash@3
-      inputs:
-        targetType: inline
-        script: mvn install
+    # - task: bash@3
+    #   inputs:
+    #     targetType: inline
+    #     script: mvn install
     - task: Maven@3
       inputs:
         mavenPomFile: 'pom.xml'
@@ -63,11 +36,6 @@ stages:
         SourceFolder: $(system.defaultworkingdirectory)/target
         Contents: '/*.jar'
         TargetFolder: $(build.artifactstagingdirectory)
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container' 
 
     - task: PublishBuildArtifacts@1
       displayName: publishing artifact
@@ -76,56 +44,8 @@ stages:
         ArtifactName: jar artifacts
         publishLocation: 'Container'
       condition: succeededOrFailed()
+
     - task: PublishPipelineArtifact@1
       displayName: Publish Pipeline Artifact
       inputs:
         artifact: cicdartifact
-
-  # - job: BuildAndPush
-  #   displayName: BuildAndPush
-  #   pool:
-  #     vmImage: 'ubuntu-latest'
-  #   steps:
-  #     - task: AzureCLI@2
-  #       displayName: AZ ACR Login
-  #       inputs:
-  #         azureSubscription: $(azureSubscription)
-  #         scriptType: 'bash'
-  #         scriptLocation: 'inlineScript'
-  #         inlineScript: 'az acr login --name $(registryName)'
-  #     - task: AzureCLI@2
-  #       displayName: AZ ACR Build
-  #       inputs:
-  #         azureSubscription: $(azureSubscription)
-  #         scriptType: 'bash'
-  #         scriptLocation: 'inlineScript'
-  #         inlineScript: 'az acr build -t $(imageName):$(tag) -t $(imageName):latest -r $(registryName) -f Dockerfile .'
-  #         useGlobalConfig: true
-  #         workingDirectory: '$(Build.SourcesDirectory)/target'
-          
-
-  # - job: WaitForScanResults
-  #   displayName: Wait for scan results
-  #   pool: 'Server'
-  #   dependsOn: 
-  #   - BuildAndPush
-  #   steps:
-  #   - task: Delay@1
-  #     inputs:
-  #       delayForMinutes: '$(waitForScanResultsAfterPushInMinutes)'
-
-  # - job: ImageScanCheck
-  #   displayName: Check for image vulnerabilities
-  #   pool:
-  #     vmImage: 'ubuntu-latest'
-  #   dependsOn: 
-  #   - BuildAndPush
-  #   - WaitForScanResults
-  #   steps:
-  #     - task: AzureCLI@2
-  #       inputs:
-  #         azureSubscription: $(azureSubscription)
-  #         scriptType: 'pscore'
-  #         scriptLocation: 'scriptPath'
-  #         scriptPath: '$(Build.SourcesDirectory)/acr-image-scan.ps1'
-  #         arguments: '-registryName $(registryName) -repository $(imageName) -tag $(tag)'
