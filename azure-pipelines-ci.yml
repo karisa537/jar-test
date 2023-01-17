@@ -43,6 +43,7 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: jar artifacts
         publishLocation: 'Container'
+        contents: '/*.jar'
       condition: succeededOrFailed()
 
     - task: PublishPipelineArtifact@1
